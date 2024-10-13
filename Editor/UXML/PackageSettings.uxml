@@ -1,0 +1,28 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/com.unity.package-management/Editor/USS/PackageSettings.uss?fileID=7433441132597879392&amp;guid=738c8c62c6245b84ca6879a47396b86e&amp;type=3#PackageSettings" />
+    <ui:VisualElement class="window">
+        <ui:VisualElement name="left-panel">
+            <uie:Toolbar>
+                <uie:ToolbarButton text="✚" display-tooltip-when-elided="true" name="new" />
+            </uie:Toolbar>
+            <ui:ListView focusable="true" name="repository-list" show-alternating-row-backgrounds="ContentOnly" fixed-item-height="30" />
+        </ui:VisualElement>
+        <ui:VisualElement name="right-panel" class="right-panel">
+            <uie:Toolbar style="align-items: center;">
+                <uie:ToolbarButton text="Show In Explorer" parse-escape-sequences="true" display-tooltip-when-elided="true" name="show-in-explorer" />
+                <uie:ToolbarButton text="Open Manifest" parse-escape-sequences="true" display-tooltip-when-elided="true" name="open-manifest" tooltip="Open Manifest" />
+                <uie:ToolbarButton text="Browser Repository" parse-escape-sequences="true" display-tooltip-when-elided="true" name="open-repo-web" tooltip="Open Manifest" />
+                <uie:ToolbarSpacer style="flex-grow: 1;" />
+                <uie:ToolbarSearchField focusable="true" style="max-width: 150px;" />
+                <uie:ToolbarButton text="↻" display-tooltip-when-elided="true" name="refresh" />
+            </uie:Toolbar>
+            <uie:Toolbar>
+                <uie:ToolbarButton text="Name" parse-escape-sequences="true" display-tooltip-when-elided="true" name="package-list-header-name" class="package-list-header" />
+                <uie:ToolbarButton text="Path" parse-escape-sequences="true" display-tooltip-when-elided="true" name="package-list-header-path" class="package-list-header" />
+                <uie:ToolbarButton text="Code Line" parse-escape-sequences="true" display-tooltip-when-elided="true" name="package-list-header-code_line" class="package-list-header" />
+                <uie:ToolbarButton text="Version" parse-escape-sequences="true" display-tooltip-when-elided="true" name="package-list-header-version" class="package-list-header" />
+            </uie:Toolbar>
+            <ui:ListView focusable="true" name="package-list" fixed-item-height="30" show-alternating-row-backgrounds="ContentOnly" selection-type="Single" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

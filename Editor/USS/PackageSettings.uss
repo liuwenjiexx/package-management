@@ -1,0 +1,144 @@
+VisualElement {
+}
+
+.settings-window_content {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.window {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+#left-panel {
+    border-left-color: rgba(0, 0, 0, 0.52);
+    border-right-color: rgba(0, 0, 0, 0.52);
+    border-top-color: rgba(0, 0, 0, 0.52);
+    border-bottom-color: rgba(0, 0, 0, 0.52);
+    border-right-width: 1px;
+    width: 200px;
+}
+
+#right-panel {
+    flex-grow: 1;
+}
+
+#repository-list {
+    flex-grow: 1;
+}
+
+#package-list {
+    flex-grow: 1;
+}
+
+.repository-item {
+    flex-direction: row;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.repository-item_name {
+    flex-grow: 1;
+    -unity-text-align: middle-left;
+    font-size: 13px;
+}
+
+.unity-list-view__empty-label {
+    display: none;
+}
+
+.package-item {
+    flex-direction: row;
+    align-items: center;
+    padding-left: 2px;
+    padding-right: 10px;
+}
+
+.package-item_check {
+    margin-right: 1px;
+    margin-top: 2px;
+}
+
+.package-item_name {
+    min-width: 210px;
+    margin-left: 0;
+    overflow: hidden;
+    flex-grow: 0.2;
+    flex-shrink: 0.1;
+    padding-right: 20px;
+}
+
+.package-item-missing {
+    overflow: hidden;
+    color: rgb(142, 142, 142);
+}
+
+.package-item_path {
+    overflow: hidden;
+    -unity-text-align: upper-right;
+    margin-right: 10px;
+    flex-grow: 1;
+    flex-shrink: 2;
+}
+
+.package-item_code-line {
+    overflow: hidden;
+    -unity-text-align: upper-left;
+    width: 80px;
+}
+
+.package-item_version {
+    -unity-text-align: upper-left;
+    width: 100px;
+}
+
+.package-item_star {
+    font-size: 14px;
+}
+
+.package-item_star:hover {
+    color: rgb(192, 153, 99);
+}
+
+.package-item_star-active {
+    color: rgb(166, 214, 55);
+}
+
+.package-list-header {
+    -unity-text-align: middle-center;
+}
+
+#package-list-header-name {
+    min-width: 230px;
+    flex-grow: 0.2;
+    flex-shrink: 0.1;
+}
+
+#package-list-header-path {
+    flex-grow: 1;
+}
+
+#package-list-header-code_line {
+    width: 80px;
+}
+
+#package-list-header-version {
+    width: 130px;
+}
+
+.package-local .package-item_path {
+    color: rgb(69, 155, 207);
+}
+
+.package-link .package-item_path {
+    color: rgb(182, 250, 46);
+}
+
+.package-version_upgrade {
+    color: rgb(182, 250, 46);
+}
+
+.package-version_degrade {
+    color: rgb(130, 130, 130);
+}

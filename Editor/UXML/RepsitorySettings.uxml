@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement style="flex-grow: 1;">
+        <ui:GroupBox text="Publish" name="publish">
+            <ui:DropdownField label="Server" index="-1" choices="System.Collections.Generic.List`1[System.String]" name="publish-server" />
+            <ui:DropdownField label="Increment" index="-1" choices="System.Collections.Generic.List`1[System.String]" name="publish-increment" />
+            <ui:DropdownField label="Pre Id" index="-1" choices="System.Collections.Generic.List`1[System.String]" name="publish-pre-id" />
+            <ui:DropdownField label="Pre Separator" index="-1" choices="System.Collections.Generic.List`1[System.String]" name="publish-pre-separator" />
+            <ui:DropdownField label="Version" index="-1" choices="System.Collections.Generic.List`1[System.String]" name="publish-version" />
+            <ui:Toggle label="Create Tag" name="publish-create-tag" />
+            <ui:Button text="Publish" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+        </ui:GroupBox>
+    </ui:VisualElement>
+</ui:UXML>
