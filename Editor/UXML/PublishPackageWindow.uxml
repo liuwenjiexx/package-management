@@ -14,7 +14,8 @@
         </ui:VisualElement>
         <ui:VisualElement name="location" class="unity-base-field">
             <ui:Label tabindex="-1" text="Location" parse-escape-sequences="true" display-tooltip-when-elided="true" class="unity-base-field__label" />
-            <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" enable-rich-text="false" class="unity-base-field__input" style="-unity-text-align: upper-right; flex-grow: 1;" />
+            <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" enable-rich-text="false" class="unity-base-field__input" style="-unity-text-align: upper-right; overflow: hidden; flex-shrink: 1;" />
+            <ui:VisualElement style="flex-grow: 1;" />
             <ui:Button text="Open" parse-escape-sequences="true" display-tooltip-when-elided="true" name="open-dir" />
         </ui:VisualElement>
         <ui:DropdownField label="Registry" index="-1" choices="System.Collections.Generic.List`1[System.String]" name="registry" />
@@ -24,6 +25,7 @@
         <ui:TextField picking-mode="Ignore" label="New Version" value="filler text" name="new-version" is-delayed="true" />
         <ui:Toggle label="Create Tag" name="create-tag" />
         <ui:Toggle label="Push" name="push" />
+        <ui:Toggle label="Force" name="force" />
         <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" name="error" style="-unity-text-align: upper-center; color: rgb(255, 0, 0);" />
         <ui:VisualElement style="align-items: center;">
             <ui:Button text="Publish" parse-escape-sequences="true" display-tooltip-when-elided="true" name="publish" />

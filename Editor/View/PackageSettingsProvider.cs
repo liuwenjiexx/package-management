@@ -1,15 +1,19 @@
 using Codice.CM.Common.Serialization.Replication;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Unity.Git;
 using Unity.SettingsManagement.Editor;
+using Unity.Async;
 
 namespace Unity.PackageManagement
 {
@@ -25,9 +29,20 @@ namespace Unity.PackageManagement
 
         Dictionary<PackageInfo, PackageData> packageDatas = new();
 
-        class PackageData
+
+        class PackageData : System.ComponentModel.INotifyPropertyChanged
         {
-            public bool changed;
+            public PackageInfo packageInfo;
+
+            public bool hasUncommitted;
+            public int diffVersionTag;
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            public void OnPropertyChanged(string propertyName)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
 
         public PackageSettingsProvider()
@@ -58,10 +73,14 @@ namespace Unity.PackageManagement
         public override void OnActivate(string searchContext, VisualElement rootElement)
         {
             string docFile = Path.GetFullPath(Path.Combine(EditorPackageUtility.GetUnityPackageDirectory(EditorPackageUtility.UnityPackageName), "README.md"));
-            var contentContainer = EditorSettingsUtility.CreateSettingsWindow(rootElement, "Package Management", scroll: false, helpLink: docFile);
+            //重写 Settings padding 样式
+            VisualElement tmp = new VisualElement();
+            rootElement.Add(tmp);
+
+            var contentContainer = EditorSettingsUtility.CreateSettingsWindow(tmp, "Package Management", scroll: false, helpLink: docFile);
 
             root = EditorPackageUtility.LoadUXML(typeof(PackageSettingsProvider), "PackageSettings", contentContainer);
-            EditorPackageUtility.AddStyle(rootElement, typeof(PackageSettingsProvider), "PackageSettings");
+            EditorPackageUtility.AddStyle(tmp, typeof(PackageSettingsProvider), "PackageSettings");
             root.style.flexGrow = 1f;
 
             EditorPackageUtility.Refresh();
@@ -649,7 +668,7 @@ namespace Unity.PackageManagement
                     view.RemoveFromClassList("package-item-missing");
                 }
 
-                if (data.changed)
+                if (data.hasUncommitted)
                 {
                     nameLabel.text += " *";
                 }
@@ -703,6 +722,17 @@ namespace Unity.PackageManagement
 
 
                 versionLabel.text = item.version;
+                if (data.diffVersionTag != 0) {
+                    if (data.diffVersionTag == -1)
+                    {
+                        versionLabel.text += " *";
+                    }
+                    else
+                    {
+                        versionLabel.text += $" ({data.diffVersionTag})";
+                    }
+                }
+
                 versionLabel.RemoveFromClassList("package-version_upgrade");
                 versionLabel.RemoveFromClassList("package-version_degrade");
                 //if (EditorPackageUtility.HasManifestPackage(item.name, item.version))
@@ -869,6 +899,7 @@ namespace Unity.PackageManagement
                 .OrderByDescending(o => o == EditorPackageUtility.ProjectRepsitory)
                 .ThenBy(o => o.name))
                 .ToList();
+
             repositoryListView.RefreshItems();
             LoadPackageList();
         }
@@ -969,19 +1000,48 @@ namespace Unity.PackageManagement
             if (packageDatas.TryGetValue(packageInfo, out var data))
                 return data;
             data = new PackageData();
-
-            if (!string.IsNullOrEmpty(packageInfo.FullDir))
-            {
-                if (EditorPackageUtility.IsGitRootDir(packageInfo.FullDir))
-                {
-                    using (var repo = new GitRepository(packageInfo.FullDir))
-                    {
-                        data.changed = repo.HasChanged();
-                    }
-                }
-            }
+            data.packageInfo = packageInfo;
+            data.PropertyChanged += PackageDataPropertyChanged;
             packageDatas[packageInfo] = data;
+
+            Task.Run(async () =>
+            {
+                await new SubThread();
+                bool newValue = false;
+                try
+                {
+                    newValue = EditorPackageUtility.HasUncommitted(packageInfo);
+                }
+                catch { }
+                await new MainThread();
+                if (newValue != data.hasUncommitted)
+                {
+                    data.hasUncommitted = newValue;
+                    data.OnPropertyChanged(nameof(data.hasUncommitted));
+                }
+
+                await new SubThread();
+                int newDiff = EditorPackageUtility.DiffVersionTag(packageInfo);
+                await new MainThread();
+                if (newDiff != data.diffVersionTag)
+                {
+                    data.diffVersionTag = newDiff;
+                    data.OnPropertyChanged(nameof(data.diffVersionTag));
+                }
+            });
             return data;
+        }
+
+        void PackageDataPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            var data = sender as PackageData;
+            if (packageListView.itemsSource == null)
+                return;
+            var index = packageListView.itemsSource.IndexOf(data.packageInfo);
+            if (index != -1)
+            {
+                packageListView.RefreshItem(index);
+            }
         }
 
     }

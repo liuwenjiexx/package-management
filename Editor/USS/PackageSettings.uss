@@ -1,7 +1,7 @@
 VisualElement {
 }
 
-.settings-window_content {
+.settings-window .settings-window_content {
     padding-left: 0;
     padding-right: 0;
 }
@@ -90,7 +90,7 @@ VisualElement {
 
 .package-item_version {
     -unity-text-align: upper-left;
-    width: 100px;
+    width: 105px;
 }
 
 .package-item_star {
@@ -124,7 +124,7 @@ VisualElement {
 }
 
 #package-list-header-version {
-    width: 130px;
+    width: 135px;
 }
 
 .package-local .package-item_path {

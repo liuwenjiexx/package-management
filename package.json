@@ -1,7 +1,7 @@
 {
   "name": "com.unity.package-management",
   "displayName": "Package Management",
-  "version": "0.0.3-preview-9",
+  "version": "0.0.4-preview-3",
   "unity": "2019.1",
   "keywords": [
     "package"
@@ -9,8 +9,8 @@
   "category": "package",
   "description": "",
   "dependencies": {
-    "com.unity.settings": "0.0.5-preview-3",
-    "com.unity.git": "0.0.2-preview-2"
+    "com.unity.settings": "0.0.7-preview-3",
+    "com.unity.git": "0.0.2-preview-5"
   },
   "author": {
     "name": ""

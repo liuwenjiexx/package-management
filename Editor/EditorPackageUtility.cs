@@ -1,3 +1,4 @@
+using Codice.CM.Common.Serialization.Replication;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Unity.Git;
@@ -1498,7 +1500,7 @@ namespace Unity.PackageManagement
         }
 
 
-        public static async Task<string> PublishPackage(NpmAuth auth, string packageDir, string newVersion, bool createTag = false, bool push = false)
+        public static async Task<string> PublishPackage(NpmAuth auth, string packageDir, string newVersion, bool createTag = false, bool push = false, bool force = false)
         {
             if (!Directory.Exists(packageDir))
                 throw new DirectoryNotFoundException(packageDir);
@@ -1507,7 +1509,7 @@ namespace Unity.PackageManagement
             if (packageInfo == null)
                 throw new Exception("PackageInfo null");
 
-            GitRepository git = null;
+            GitRepository repo = null;
             try
             {
                 using (var bar = new EditorProgressBar($"Publish Package {packageInfo.name}", null, 0f))
@@ -1524,28 +1526,37 @@ namespace Unity.PackageManagement
                     //检查是否存在git
                     if (GitUtility.IsInsideRepositoryDir(packageDir))
                     {
-                        git = new GitRepository(packageDir);
-                        git.BeginDirectory(".");
+                        repo = new GitRepository(packageDir);
+                        repo.BeginDirectory(".");
 
                         //检查包目录是否有修改
-                        var changedFiles = git.GetChangedFiles();
+                        var changedFiles = repo.GetChangedFiles();
                         if (changedFiles.Length > 0)
                         {
-                            throw new Exception($"Package Directory has files({changedFiles.Length}) changed:\n{string.Join("\n", changedFiles.Take(3))}");
+                            if (!force)
+                            {
+                                throw new Exception($"Package Directory has files({changedFiles.Length}) changed:\n{string.Join("\n", changedFiles.Take(3))}");
+                            }
+                            else
+                            {
+                                Debug.Log($"Package Directory has files({changedFiles.Length}) changed:\n{string.Join("\n", changedFiles)}");
+                            }
                         }
                     }
 
                     //检查最近的tag是否有提交变化
-                    if (git != null)
+                    if (repo != null)
                     {
-                        var tags = git.GetVersionTags(sortAsc: false, limit: 1);
-                        if (tags.Length > 0)
+                        if (!string.IsNullOrEmpty(repo.GetLatestVersionTag()) && !HasDiffVersionTag(packageInfo))
                         {
-                            string lastTagCommitId = git.GetTagInfo(tags[0]).commitId;
-                            var commit = git.GetCommit();
-                            if (commit.id == lastTagCommitId)
+                            Debug.Log(repo.GetLatestVersionTag() + ", " + HasDiffVersionTag(packageInfo));
+                            if (!force)
                             {
-                                throw new Exception("Not changed");
+                                throw new Exception("Not commit difference without version tag");
+                            }
+                            else
+                            {
+                                Debug.Log("Not commit difference without version tag");
                             }
                         }
                     }
@@ -1553,9 +1564,12 @@ namespace Unity.PackageManagement
                     if (createTag)
                     {
                         tagName = $"v{version}";
-                        if (git.GetTags(tagName).Any(o => o == tagName))
+                        if (repo.ExistsTag(tagName))
                         {
-                            throw new Exception($"Exists tag '{tagName}'");
+                            if (!force)
+                            {
+                                throw new Exception($"Exists tag '{tagName}'");
+                            }
                         }
                     }
 
@@ -1563,21 +1577,21 @@ namespace Unity.PackageManagement
                     PackageInfo.WriteProperty(packageInfo.FilePath, PackageInfo.Properties.Version, version);
 
                     //提交版本号
-                    if (git.GetChangedFiles().Contains(PackageInfo.FILE_NAME))
+                    if (repo.GetChangedFiles().Contains(PackageInfo.FILE_NAME))
                     {
                         string commitMsg = $"v{packageInfo.Version}";
-                        git.AddToCommit(PackageInfo.FILE_NAME);
-                        git.Commit(commitMsg);
+                        repo.AddToCommit(PackageInfo.FILE_NAME);
+                        repo.Commit(commitMsg);
                     }
 
                     //创建版本标签
-                    if (!string.IsNullOrEmpty(tagName))
+                    if (!string.IsNullOrEmpty(tagName) && !repo.ExistsTag(tagName))
                     {
-                        git.CreateTag(tagName);
+                        repo.CreateTag(tagName);
                         if (push)
                         {
-                            string remote = git.GetDefaultRemote();
-                            git.PushTag(remote, tagName);
+                            string remote = repo.GetDefaultRemote();
+                            repo.PushTag(remote, tagName);
                         }
                     }
 
@@ -1609,10 +1623,10 @@ namespace Unity.PackageManagement
             }
             finally
             {
-                if (git != null)
+                if (repo != null)
                 {
-                    git.Dispose();
-                    git = null;
+                    repo.Dispose();
+                    repo = null;
                 }
             }
 
@@ -1897,7 +1911,66 @@ namespace Unity.PackageManagement
             if (string.IsNullOrEmpty(dir))
                 return false;
 
-            return Directory.Exists(Path.Combine(dir, ".git"));
+            if (Directory.Exists(Path.Combine(dir, ".git")))
+                return true;
+            //子模块
+            if (File.Exists(Path.Combine(dir, ".git")))
+                return true;
+            return false;
+        }
+
+        public static GitRepository TryGetPackageRepository(PackageInfo packageInfo)
+        {
+            if (string.IsNullOrEmpty(packageInfo.FullDir))
+                return null;
+            return TryGetPackageRepository(packageInfo.FullDir);
+        }
+
+        public static GitRepository TryGetPackageRepository(string packageDir)
+        {
+            GitRepository repo = null;
+            if (IsGitRootDir(packageDir))
+            {
+                repo = new GitRepository(packageDir);
+            }
+            return repo;
+        }
+
+        public static bool HasUncommitted(PackageInfo packageInfo)
+        {
+            GitRepository repo = TryGetPackageRepository(packageInfo);
+            if (repo == null)
+                return false;
+            try
+            {
+                return repo.HasChanged();
+            }
+            finally
+            {
+                repo.Dispose();
+            }
+        }
+
+        public static bool HasDiffVersionTag(PackageInfo packageInfo)
+        {
+            return DiffVersionTag(packageInfo) != 0;
+        }
+
+        public static int DiffVersionTag(PackageInfo packageInfo)
+        {
+            GitRepository repo = TryGetPackageRepository(packageInfo);
+            if (repo == null)
+                return 0;
+            try
+            {
+                //检查最近的tag是否有提交变化            
+                return repo.DiffVersionTag();
+            }
+            finally
+            {
+                repo.Dispose();
+            }
+            return 0;
         }
 
     }

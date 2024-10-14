@@ -28,6 +28,7 @@ namespace Unity.PackageManagement
         TextField newVersionField;
         Toggle createTagField;
         Toggle pushField;
+        Toggle forceField;
         private Label errorField;
         Button publishButton;
         private string newVersion;
@@ -36,6 +37,7 @@ namespace Unity.PackageManagement
         private bool isPush = true;
         private bool isDone;
         public bool success = false;
+        public bool isForce = false;
 
 
         Dictionary<int, string> incrementFieldNames = new()
@@ -96,6 +98,7 @@ namespace Unity.PackageManagement
             newVersionField = root.Q<TextField>("new-version");
             createTagField = root.Q<Toggle>("create-tag");
             pushField = root.Q<Toggle>("push");
+            forceField = root.Q<Toggle>("force");
             errorField = root.Q<Label>("error");
             publishButton = root.Q<Button>("publish");
             var openFolderButton = root.Q<Button>("open-dir");
@@ -134,6 +137,10 @@ namespace Unity.PackageManagement
             pushField.RegisterValueChangedCallback(e =>
             {
                 isPush = e.newValue;
+            });
+            forceField.RegisterValueChangedCallback(e =>
+            {
+                isForce = e.newValue;
             });
 
             publishButton.clicked += async () =>
@@ -297,6 +304,7 @@ namespace Unity.PackageManagement
             newVersionField.SetValueWithoutNotify(null);
             createTagField.SetValueWithoutNotify(false);
             pushField.SetValueWithoutNotify(false);
+            forceField.SetValueWithoutNotify(false);
             errorField.text = null;
         }
 
@@ -443,7 +451,7 @@ namespace Unity.PackageManagement
             if (string.IsNullOrEmpty(newVersion))
                 throw new Exception("New Version null");
 
-            newVersion = await EditorPackageUtility.PublishPackage(auth, packageDir, newVersion, createTag: createTag, push: isPush);
+            newVersion = await EditorPackageUtility.PublishPackage(auth, packageDir, newVersion, createTag: createTag, push: isPush, force: isForce);
             packageInfo.Version = newVersion;
 
 
